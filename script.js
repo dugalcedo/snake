@@ -8,17 +8,18 @@ const ctx = canvas.getContext('2d')
 let state = 'waiting'
 let controlsLocked = false
 
-const relativePath = (pathStartingWithSlash) => {
-    let head = "."
-    if (window.location.href.includes('github')) head += '/snake'
-    return head + pathStartingWithSlash
-}
-
 // sounds
+const toSoundPath = (name, ext) => {
+    if (window.location.href.includes('github')) {
+        return `https://dugalcedo.github.io/snake/sounds/${name}.${ext}`
+    } else {
+        return `./sounds/${name}.${ext}`
+    }
+}
 const sounds = {}
 const createSound = (name, ext) => {
     sounds[name] = document.createElement('audio')
-    sounds[name].src = relativePath(`/sounds/${name}.${ext}`)
+    sounds[name].src = toSoundPath(name, ext)
 }
 createSound('beep', 'wav')
 createSound('click', 'wav')
