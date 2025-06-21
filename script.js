@@ -5,6 +5,15 @@ let FRAME_LENGTH_MS = 250
 const canvas = document.querySelector('canvas#snake')
 const ctx = canvas.getContext('2d')
 
+const currentScoreEl = document.querySelector('.current-score')
+const highestScoreEl = document.querySelector('.highest-score')
+let currentScore = 0
+let highestScore = Number(localStorage.getItem('dug-snake-highest-score')) || 0
+currentScoreEl.innerText = currentScore
+highestScoreEl.innerText = highestScore
+
+const h3 = document.querySelector('h3')
+
 let state = 'waiting'
 let controlsLocked = false
 
@@ -33,6 +42,23 @@ const playSound = (name) => {
 class Square {
     static spaceOccupiedBySnakeSegment(square) {
         return SnakeSegment.all.some(ss => ss.x === square.x && ss.y === square.y)
+    }
+
+    static get allSpacesNotOccupiedBySnakeSegement() {
+        let spaces = []
+        for (let x = 0; x < COLUMN_COUNT; x++) {
+            for (let y = 0; y < COLUMN_COUNT; y++) {
+                if (!Square.spaceOccupiedBySnakeSegment({ x, y })) {
+                    spaces.push({x, y})
+                }
+            }
+        }
+        return spaces
+    }
+
+    static get randomUnoccupiedSpace() {
+        let unoccupied = Square.allSpacesNotOccupiedBySnakeSegement
+        return unoccupied[Math.floor(Math.random()*unoccupied.length)]
     }
 
     constructor(options) {
@@ -83,18 +109,13 @@ class Food extends Square {
             fill: 'lime '
         })
 
-        this.x = randInt(0, COLUMN_COUNT - 1)
-        this.y = randInt(0, COLUMN_COUNT - 1)
-
-        // Attempt to find space that isn't occupied by a SnakeSegment
-        let attempts = 0
-        while (Square.spaceOccupiedBySnakeSegment(this)) {
-            if (attempts >= 500) {
-                throw new Error("Attempted to create a Food 500 times but the snake is taking up too much space.")
-            }
-            this.x = randInt(0, COLUMN_COUNT - 1)
-            this.y = randInt(0, COLUMN_COUNT - 1)
-            attempts += 1
+        try {
+            let {x, y} = Square.randomUnoccupiedSpace
+            this.x = x
+            this.y = y
+        } catch {
+            state = 'no more spaces'
+            return
         }
 
         Food.all.push(this)
@@ -128,8 +149,9 @@ class SnakeSegment extends Square {
     static grow() {
         let [x, y] = SnakeSegment.getNextSegmentCoords()
         new SnakeSegment({ x, y })
-        FRAME_LENGTH_MS -= 5
+        increaseSpeed()
         playSound('beep')
+        increaseScore()
     }
 
     static getNextSegmentCoords() {
@@ -261,6 +283,9 @@ function frame() {
             case 'game over':
                 gameOver()
                 break
+            case 'no more spaces':
+                win()
+                break
         }
         return
     }
@@ -312,11 +337,31 @@ function gameOver() {
     ctx.rect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
     ctx.fill()
 
-    ctx.font = "18px sans-serif"
-    ctx.fillStyle = "white"
-    ctx.fillText("GAME OVER", CANVAS_SIZE/2, CANVAS_SIZE /2)
-
     playSound('gameOver')
+    h3.innerText = "GAME OVER. Refresh to restart."
+}
+
+function win() {
+    h3.innerText = "There are no more spaces for food. You win I guess. Refresh to play again."
+}
+
+function increaseScore() {
+    // current score
+    currentScore++
+    currentScoreEl.innerText = currentScore
+
+    // highest score
+    if (currentScore > highestScore) {
+        highestScore = currentScore
+        highestScoreEl.innerText = highestScore
+        localStorage.setItem('dug-snake-highest-score', highestScore)
+    }
+}
+
+function increaseSpeed() {
+    let newSpeed = FRAME_LENGTH_MS - 5
+    if (newSpeed < 25) return;
+    FRAME_LENGTH_MS = newSpeed
 }
 
 // -------main-----
