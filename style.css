@@ -1,0 +1,11 @@
+.container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+canvas {
+    border: 1px solid gray;
+    width: 650px;
+    max-width: 100%;
+}
