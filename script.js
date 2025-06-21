@@ -12,7 +12,7 @@ let controlsLocked = false
 const sounds = {}
 const createSound = (name, ext) => {
     sounds[name] = document.createElement('audio')
-    sounds[name].src = `/sounds/${name}.${ext}`
+    sounds[name].src = `./sounds/${name}.${ext}`
 }
 createSound('beep', 'wav')
 createSound('click', 'wav')
