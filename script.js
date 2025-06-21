@@ -72,7 +72,8 @@ class Food extends Square {
     constructor(options) {
         super({
             ...options,
-            padding: options.padding || COLUMN_COUNT - 1
+            padding: options.padding || SQUARE_SIZE/4,
+            fill: 'lime '
         })
 
         this.x = randInt(0, COLUMN_COUNT - 1)
@@ -162,6 +163,7 @@ class SnakeSegment extends Square {
 
         if (this.isHead) {
             this.dir = options.dir || 'right'
+            this.fill = "orange"
         }
 
         // padding
